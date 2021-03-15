@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外部APIサンプル</title>
+</head>
+<body>
+    <div id="app">
+        <form>
+            <input type="text" placeholder="値を入力" v-model="zipcode">
+            <button type="button" v-on:click.prevent="searchInfo">自動検索</button>
+            <hr>
+            <p>Message:{{addressData.message}}</p>
+            <p>都道府県:</p>
+            <input type="text" v-model="result.address1">
+            <p>市町村区:</p>
+            <input type="text" v-model="add" placeholder="">
+            <p>Status:{{addressData.status}}</p>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+        new Vue ({
+            el: '#app',
+
+            data: function() {
+                return {
+                    zipcode: '',
+                    addressData: '',
+                    message: '',
+                    result: '',
+                    add: '',
+                }
+            },
+
+            methods: {
+                searchInfo: function() {
+                    axios.interceptors.request.use(request => {
+                        console.log('Starting Request: ', request)
+                        return request
+                    })
+
+                    axios.interceptors.response.use(response => {
+                        console.log('Response: ', response)
+                        return response
+                    })
+
+                    axios.get('/api/search?zipcode=' + this.zipcode)
+                    .then(response => {
+                        if(response.status != 200) {
+                            throw new Error('レスポンスエラー')
+                        }else{
+                            var resultAddress = response.data
+
+                            this.addressData = resultAddress
+                            this.result = resultAddress.results[0]
+                            
+
+                            var add2 = resultAddress.results[0].address2
+                            var add3 = resultAddress.results[0].address3
+
+                            this.add = add2 + add3
+                            
+                        }
+                    })
+                    .catch((err) => {
+                        console.log(err)
+                    })
+                }
+            }
+        })
+    </script>
+</body>
+</html>
